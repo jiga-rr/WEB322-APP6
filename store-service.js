@@ -36,7 +36,7 @@ const getAllItems = () => {
 
 const getPublishedItems = () => {
   return new Promise((resolve, reject) => {
-    const publishedItems = items.filter(item => item.published);
+    const publishedItems = items.filter((item) => item.published);
     if (publishedItems.length === 0) {
       reject('No published items found');
     } else {
@@ -55,9 +55,64 @@ const getCategories = () => {
   });
 };
 
+const addItem = (itemData) => {
+  return new Promise((resolve, reject) => {
+    if (itemData.published === undefined) {
+      itemData.published = false;
+    } else {
+      itemData.published = true;
+    }
+
+    itemData.id = items.length + 1;
+
+    items.push(itemData);
+
+    resolve(itemData);
+  });
+};
+
+const getItemById = (id) => {
+  return new Promise((resolve, reject) => {
+    const item = items.find((item) => item.id === id);
+    if (item) {
+      resolve(item);
+    } else {
+      reject('No result returned');
+    }
+  });
+};
+
+const getItemsByCategory = (category) => {
+  return new Promise((resolve, reject) => {
+    const filteredItems = items.filter((item) => item.category === category);
+    if (filteredItems.length === 0) {
+      reject('No results returned');
+    } else {
+      resolve(filteredItems);
+    }
+  });
+};
+
+const getItemsByMinDate = (minDateStr) => {
+  return new Promise((resolve, reject) => {
+    const filteredItems = items.filter(
+      (item) => new Date(item.postDate) >= new Date(minDateStr)
+    );
+    if (filteredItems.length === 0) {
+      reject('No results returned');
+    } else {
+      resolve(filteredItems);
+    }
+  });
+};
+
 module.exports = {
   initialize,
   getAllItems,
   getPublishedItems,
-  getCategories
+  getCategories,
+  addItem,
+  getItemById,
+  getItemsByCategory,
+  getItemsByMinDate,
 };
