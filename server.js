@@ -1,22 +1,6 @@
-/*********************************************************************************
-*  WEB322 – Assignment 03
-*  I declare that this assignment is my own work in accordance with Seneca  Academic Policy.  No part 
-*  of this assignment has been copied manually or electronically from any other source 
-*  (including 3rd party web sites) or distributed to other students.
-* 
-*  Name: _Jigar Patel_Student ID: _156200214_ Date: __16 June 2023_
-*
-*  Cyclic Web App URL: https://courageous-pig-coveralls.cyclic.app/
-* 
-*  GitHub Repository URL: https://github.com/jiga-rr/WEB322-app
-*
-********************************************************************************/ 
-
-
-
 const express = require('express');
 const app = express();
-const storeService = require('./store-service');
+const exphbs = require('express-handlebars');
 const path = require('path');
 const multer = require('multer');
 const cloudinary = require('cloudinary').v2;
@@ -33,6 +17,11 @@ cloudinary.config({
 // Multer upload configuration
 const upload = multer();
 
+// Set up the view engine
+app.engine('hbs', exphbs.engine({ extname: '.hbs' }));
+app.set('view engine', 'hbs');
+app.set('views', path.join(__dirname, 'views'));
+
 app.use(express.static('public'));
 
 app.get('/', (req, res) => {
@@ -40,7 +29,7 @@ app.get('/', (req, res) => {
 });
 
 app.get('/about', (req, res) => {
-  res.sendFile(path.join(__dirname, '/views/about.html'));
+  res.render('about');
 });
 
 app.get('/shop', (req, res) => {
