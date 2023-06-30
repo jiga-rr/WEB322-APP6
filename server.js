@@ -1,3 +1,19 @@
+/*********************************************************************************
+*  WEB322 – Assignment 03
+*  I declare that this assignment is my own work in accordance with Seneca  Academic Policy.  No part 
+*  of this assignment has been copied manually or electronically from any other source 
+*  (including 3rd party web sites) or distributed to other students.
+* 
+*  Name: _Jigar Patel_Student ID: _156200214_ Date: __16 June 2023_
+*
+*  Cyclic Web App URL: https://courageous-pig-coveralls.cyclic.app/
+* 
+*  GitHub Repository URL: https://github.com/jiga-rr/WEB322-app
+*
+********************************************************************************/ 
+
+
+
 const express = require('express');
 const app = express();
 const storeService = require('./store-service');
@@ -8,9 +24,9 @@ const streamifier = require('streamifier');
 
 // Cloudinary configuration
 cloudinary.config({
-  cloud_name: 'Your_Cloud_Name',
-  api_key: 'Your_API_Key',
-  api_secret: 'Your_API_Secret',
+  cloud_name: 'Ydsn1okdx2',
+  api_key: '225574679439948',
+  api_secret: '42zcDnamSSH89VWiSeVdKOs5aHY',
   secure: true
 });
 
