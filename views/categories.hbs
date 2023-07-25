@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Categories</title>
+</head>
+
+<body>
+  <h2>Categories</h2>
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Category</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {{#each categories}}
+      <tr>
+        <td>{{this}}</td>
+        <td>
+          <a href="/categories/delete/{{@index}}" class="btn btn-danger">Remove</a>
+        </td>
+      </tr>
+      {{/each}}
+    </tbody>
+  </table>
+</body>
+
+</html>
