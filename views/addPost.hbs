@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Add Post View</title>
+</head>
+
+<body>
+  <h2>Add Post View</h2>
+  <form action="/addItem" method="post" enctype="multipart/form-data">
+    <label for="name">Name:</label>
+    <input type="text" id="name" name="name" required>
+    <br>
+    <label for="description">Description:</label>
+    <textarea id="description" name="description" rows="4" required></textarea>
+    <br>
+    {{#if categories}}
+      <label for="category">Category:</label>
+      <select class="form-control" name="category" id="category">
+        <option value="">Select Category</option>
+        {{#each categories}}
+          <option value="{{id}}">{{category}}</option>
+        {{/each}}
+      </select>
+    {{else}}
+      <div>No Categories</div>
+    {{/if}}
+    <br>
+    <label for="image">Image:</label>
+    <input type="file" id="image" name="image" accept="image/*">
+    <br>
+    <label for="published">Published:</label>
+    <input type="checkbox" id="published" name="published" value="true">
+    <br>
+    <input type="submit" value="Add Post">
+  </form>
+</body>
+
+</html>

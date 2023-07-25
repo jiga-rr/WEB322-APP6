@@ -1,118 +1,223 @@
-const fs = require('fs');
+const Sequelize = require('sequelize');
 
-let items = [];
-let categories = [];
+var sequelize = new Sequelize('cbiohtus', 'ucbiohtus', 'WU2iDUEp9pMDk_jUTVhRssr4givXXALZ', {
+  host: 'hansken.db.elephantsql.com',
+  dialect: 'postgres',
+  port: 5432,
+  dialectOptions: {
+    ssl: { rejectUnauthorized: false }
+  },
+  query: { raw: true }
+});
 
-const initialize = () => {
-  return new Promise((resolve, reject) => {
-    fs.readFile('./data/items.json', 'utf8', (err, itemsData) => {
-      if (err) {
-        reject('Unable to read items file');
-        return;
-      }
-      items = JSON.parse(itemsData);
+var Item = sequelize.define('Item', {
+  body: Sequelize.TEXT,
+  title: Sequelize.TEXT,
+  postDate: Sequelize.TEXT,
+  featureImage: Sequelize.STRING,
+  published: Sequelize.BOOLEAN,
+  price: Sequelize.DOUBLE
+});
 
-      fs.readFile('./data/categories.json', 'utf8', (err, categoriesData) => {
-        if (err) {
-          reject('Unable to read categories file');
-          return;
-        }
-        categories = JSON.parse(categoriesData);
-        resolve();
-      });
-    });
-  });
-};
+var Category = sequelize.define('category', {
+  category: Sequelize.STRING
+});
 
-const getAllItems = () => {
-  return new Promise((resolve, reject) => {
-    if (items.length === 0) {
-      reject('No items found');
-    } else {
-      resolve(items);
-    }
-  });
-};
-
-const getPublishedItems = () => {
-  return new Promise((resolve, reject) => {
-    const publishedItems = items.filter((item) => item.published);
-    if (publishedItems.length === 0) {
-      reject('No published items found');
-    } else {
-      resolve(publishedItems);
-    }
-  });
-};
-
-const getCategories = () => {
-  return new Promise((resolve, reject) => {
-    if (categories.length === 0) {
-      reject('No categories found');
-    } else {
-      resolve(categories);
-    }
-  });
-};
-
-const addItem = (itemData) => {
-  return new Promise((resolve, reject) => {
-    if (itemData.published === undefined) {
-      itemData.published = false;
-    } else {
-      itemData.published = true;
-    }
-
-    itemData.id = items.length + 1;
-
-    items.push(itemData);
-
-    resolve(itemData);
-  });
-};
-
-const getItemById = (id) => {
-  return new Promise((resolve, reject) => {
-    const item = items.find((item) => item.id === id);
-    if (item) {
-      resolve(item);
-    } else {
-      reject('No result returned');
-    }
-  });
-};
-
-const getItemsByCategory = (category) => {
-  return new Promise((resolve, reject) => {
-    const filteredItems = items.filter((item) => item.category === category);
-    if (filteredItems.length === 0) {
-      reject('No results returned');
-    } else {
-      resolve(filteredItems);
-    }
-  });
-};
-
-const getItemsByMinDate = (minDateStr) => {
-  return new Promise((resolve, reject) => {
-    const filteredItems = items.filter(
-      (item) => new Date(item.postDate) >= new Date(minDateStr)
-    );
-    if (filteredItems.length === 0) {
-      reject('No results returned');
-    } else {
-      resolve(filteredItems);
-    }
-  });
-};
+Item.belongsTo(Category, {
+  foreignKey: 'categoryId',
+  as: 'itemCategory',
+});
 
 module.exports = {
-  initialize,
-  getAllItems,
-  getPublishedItems,
-  getCategories,
-  addItem,
-  getItemById,
-  getItemsByCategory,
-  getItemsByMinDate,
+  initialize: function () {
+    return sequelize.sync()
+      .then(() => {
+        console.log('Database sync successful.');
+      })
+      .catch((err) => {
+        console.error('Unable to sync the database.', err);
+        throw new Error('unable to sync the database');
+      });
+  },
+
+  getAllItems: function () {
+    return Item.findAll()
+      .then((items) => {
+        if (items) {
+          return items;
+        } else {
+          throw new Error('no results returned');
+        }
+      })
+      .catch((err) => {
+        console.error(err);
+        throw new Error('no results returned');
+      });
+  },
+
+  getItemsByCategory: function (category) {
+    return Item.findAll({ where: { category: category } })
+      .then((items) => {
+        if (items) {
+          return items;
+        } else {
+          throw new Error('no results returned');
+        }
+      })
+      .catch((err) => {
+        console.error(err);
+        throw new Error('no results returned');
+      });
+  },
+
+  getItemsByMinDate: function (minDateStr) {
+    const { gte } = Sequelize.Op;
+
+    return Item.findAll({
+      where: {
+        postDate: {
+          [gte]: new Date(minDateStr)
+        }
+      }
+    })
+      .then((items) => {
+        if (items) {
+          return items;
+        } else {
+          throw new Error('no results returned');
+        }
+      })
+      .catch((err) => {
+        console.error(err);
+        throw new Error('no results returned');
+      });
+  },
+
+  getItemById: function (id) {
+    return Item.findAll({ where: { id: id, published: true } })
+      .then((items) => {
+        if (items && items.length > 0) {
+          return items[0];
+        } else {
+          throw new Error('no results returned');
+        }
+      })
+      .catch((err) => {
+        console.error(err);
+        throw new Error('no results returned');
+      });
+  },
+
+  addItem: function (itemData) {
+    itemData.published = (itemData.published) ? true : false;
+
+    for (const prop in itemData) {
+      if (itemData[prop] === '') {
+        itemData[prop] = null;
+      }
+    }
+
+    itemData.postDate = new Date();
+
+    return Item.create(itemData)
+      .then(() => {
+        console.log('Item added successfully.');
+      })
+      .catch((err) => {
+        console.error(err);
+        throw new Error('unable to create post');
+      });
+  },
+
+  getPublishedItems: function () {
+    return Item.findAll({ where: { published: true } })
+      .then((items) => {
+        if (items) {
+          return items;
+        } else {
+          throw new Error('no results returned');
+        }
+      })
+      .catch((err) => {
+        console.error(err);
+        throw new Error('no results returned');
+      });
+  },
+
+  getPublishedItemsByCategory: function (category) {
+    return Item.findAll({ where: { published: true, category: category } })
+      .then((items) => {
+        if (items) {
+          return items;
+        } else {
+          throw new Error('no results returned');
+        }
+      })
+      .catch((err) => {
+        console.error(err);
+        throw new Error('no results returned');
+      });
+  },
+
+  getCategories: function () {
+    return Category.findAll()
+      .then((categories) => {
+        if (categories) {
+          return categories.map((category) => category.category);
+        } else {
+          throw new Error('no results returned');
+        }
+      })
+      .catch((err) => {
+        console.error(err);
+        throw new Error('no results returned');
+      });
+  },
+
+  addCategory: function (categoryData) {
+    for (const prop in categoryData) {
+      if (categoryData[prop] === '') {
+        categoryData[prop] = null;
+      }
+    }
+
+    return Category.create(categoryData)
+      .then(() => {
+        console.log('Category added successfully.');
+      })
+      .catch((err) => {
+        console.error(err);
+        throw new Error('unable to create category');
+      });
+  },
+
+  deleteCategoryById: function (id) {
+    return Category.destroy({ where: { id: id } })
+      .then((rowsDeleted) => {
+        if (rowsDeleted > 0) {
+          console.log('Category deleted successfully.');
+        } else {
+          throw new Error('no category with specified id');
+        }
+      })
+      .catch((err) => {
+        console.error(err);
+        throw new Error('unable to delete category');
+      });
+  },
+
+  deletePostById: function (id) {
+    return Item.destroy({ where: { id: id } })
+      .then((rowsDeleted) => {
+        if (rowsDeleted > 0) {
+          console.log('Item deleted successfully.');
+        } else {
+          throw new Error('no item with specified id');
+        }
+      })
+      .catch((err) => {
+        console.error(err);
+        throw new Error('unable to delete item');
+      });
+  }
 };
