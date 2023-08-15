@@ -10,7 +10,9 @@
 * 
 *  GitHub Repository URL: https://github.com/jiga-rr/WEB322-app
 *
-********************************************************************************/ 
+********************************************************************************/
+const authData = require('./auth-service.js'); 
+const clientSessions = require('client-sessions');
 const express = require('express');
 const exphbs = require('express-handlebars');
 const path = require('path');
@@ -18,6 +20,31 @@ const multer = require('multer');
 const cloudinary = require('cloudinary').v2;
 const streamifier = require('streamifier');
 const storeService = require('./store-service');
+
+const app = express();
+const HTTP_PORT = 3000;
+
+app.engine(".hbs", exphbs.engine({ extname: ".hbs" }));
+app.set("view engine", ".hbs");
+app.use(express.static("static"));
+app.use(clientSessions({
+  cookieName: "session",
+  secret: "week10example_web322",
+  duration: 2 * 60 * 1000,
+  activeDuration: 1000 * 60
+}));
+app.use(express.urlencoded({ extended: false }));
+app.use(express.static('public'));
+
+function ensureLogin(req, res, next) {
+  if (!req.session.user) {
+    res.redirect("/login");
+  } else {
+    next();
+  }
+}
+
+app.use(ensureLogin);
 
 cloudinary.config({
   cloud_name: 'Ydsn1okdx2',
@@ -27,8 +54,6 @@ cloudinary.config({
 });
 
 const upload = multer();
-const app = express();
-
 const handlebars = exphbs.create({
   helpers: {
     navLink: function (url, options) {
@@ -145,7 +170,7 @@ app.get("/Items/add", async (req, res) => {
     // render the "addPost" view with the categories data
     res.render("addPost", { categories: categories });
   } catch (err) {
-    // If there's an error in getting categories, render the "addPost" view with an empty array for categories
+  
     res.render("addPost", { categories: [] });
   }
 });
@@ -255,6 +280,66 @@ app.get("/Items/delete/:id", async (req, res) => {
 
 app.use(function (req, res) {
   res.status(404).render("404");
+});
+
+app.get("/login", (req, res) => {
+  res.render("login");
+});
+
+app.get("/register", (req, res) => {
+  res.render("register");
+});
+
+app.post("/register", async (req, res) => {
+  try {
+    const userData = {
+      userName: req.body.userName,
+      password: req.body.password
+    };
+
+    await authData.RegisterUser(userData);
+    
+    res.render("register", { successMessage: "User created" });
+  } catch (err) {
+    res.render("register", { errorMessage: err, userName: req.body.userName });
+  }
+});
+
+app.post("/login", (req, res) => {
+  req.body.userAgent = req.get('User-Agent');
+
+  authData.CheckUser(req.body)
+    .then((user) => {
+      req.session.user = {
+        userName: user.userName,
+        email: user.email,
+        loginHistory: user.loginHistory
+      };
+
+      res.redirect('/items');
+    })
+    .catch((err) => {
+      res.render("login", { errorMessage: err, userName: req.body.userName });
+    });
+});
+
+app.get("/logout", (req, res) => {
+  req.session.reset();
+  res.redirect('/');
+});
+
+app.get("/userHistory", ensureLogin, (req, res) => {
+  res.render("userHistory");
+});
+
+storeData.initialize()
+.then(authData.initialize)
+.then(function(){
+    app.listen(HTTP_PORT, function(){
+        console.log("app listening on: " + HTTP_PORT)
+    });
+}).catch(function(err){
+    console.log("unable to start server: " + err);
 });
 
 app.listen(3000, () => {
