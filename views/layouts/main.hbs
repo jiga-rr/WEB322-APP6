@@ -1,32 +1,53 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>My Website</title>
- <link rel="stylesheet" href="/css/main.css">
-
+    <!-- ... (head content) ... -->
 </head>
 <body>
-  <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+
+<nav class="navbar navbar-inverse">
     <div class="container">
-      <a class="navbar-brand" href="/">My Website</a>
-      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-        <span class="navbar-toggler-icon"></span>
-      </button>
-      <div class="collapse navbar-collapse" id="navbarNav">
-        <ul class="navbar-nav">
-          {{#navLink "/"}}Home{{/navLink}}
-          {{#navLink "/about"}}About{{/navLink}}
-          {{#navLink "/shop"}}Shop{{/navLink}}
-          {{#navLink "/contact"}}Contact{{/navLink}}
-        </ul>
-      </div>
+        <div class="navbar-header">
+            <!-- ... (navbar header content) ... -->
+        </div>
+
+        <div class="collapse navbar-collapse">
+            <ul class="nav navbar-nav">
+                <li>{{#navLink "/store"}}<a href="/store">Store</a>{{/navLink}}</li>
+                <li>{{#navLink "/about"}}<a href="/about">About</a>{{/navLink}}</li>
+            </ul>
+
+            {{#if session.user}}
+            <form class="navbar-form navbar-right">
+                <div class="dropdown">
+                    <button class="btn btn-primary dropdown-toggle" type="button" id="userMenu" data-toggle="dropdown">
+                        <span class="glyphicon glyphicon-user"></span>&nbsp;&nbsp;{{session.user.userName}}&nbsp;&nbsp;<span class="caret"></span>
+                    </button>
+                    <ul class="dropdown-menu" aria-labelledby="userMenu">
+                        <li><a href="/userHistory">User History</a></li>
+                        <li><a href="/logout">Log Out</a></li>
+                    </ul>
+                </div>
+            </form>
+            <ul class="nav navbar-nav navbar-right">
+                {{#navLink "/items"}}<li><a href="/items">Items</a></li>{{/navLink}}
+                {{#navLink "/categories"}}<li><a href="/categories">Categories</a></li>{{/navLink}}
+            </ul>
+            {{else}}
+            <form class="navbar-form navbar-right">
+                <a href="/register" class="btn btn-success"><span class="glyphicon glyphicon-cog"></span>&nbsp;&nbsp;Register</a>
+                <a href="/login" class="btn btn-primary"><span class="glyphicon glyphicon-chevron-right"></span>&nbsp;&nbsp;Log In</a>
+            </form>
+            {{/if}}
+        </div>
     </div>
-  </nav>
+</nav>
 
-  <div class="container">
+<div class="container">
     {{{body}}}
-  </div>
+</div>
 
-  <script src="/js/script.js"></script>
+<!-- ... (footer content) ... -->
+
 </body>
 </html>
